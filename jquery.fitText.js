@@ -17,76 +17,58 @@
  */
 
 (function($) {
-  $(function() {
-    // NOTE: We have to use a <span> inside a max-width <div> for IE6
-    $('body').append('\
-      <div id="fittext-tmp-div" style="width:9999px; left:-9999px; top:-9999px; display:block; position: absolute;">\
-        <span id="fittext-tmp-span"></span>\
-      </div>'
-    );
-  });
-  
-  $.fn.fitText = function(type) {
+  $.fn.fitText = function() {
     return $(this).each(function() {
       var $this = $(this);
+      var font_size = 100; // we're using % here!
       
       // Grab unaltered content FIRST
       var content = $this.html();
+      
+      // NOTE: We have to use a <span> inside a max-width <div> for IE6
+      $('body').append('\
+        <div id="fittext-tmp-div" style="left:-9999px; top:-9999px; display:block; position: absolute;">\
+          <span id="fittext-tmp-span"></span>\
+        </div>'
+      );
       
       // Append our tmp div to the container element we're about
       // to abbreviate, so that it inherits the containers CSS properties
       // (font, padding, etc.)
       $("#fittext-tmp-div").appendTo(this);
       
+      $("#fittext-tmp-div").css({"width": $(this).width()});
+      
       // Take one off for when the content exactly matches container
       // In Firefox 3 and Safari 3 the content will wrap without this
-      
-      if (type == "height") {
-        $("#fittext-tmp-div").css({"width": $(this).width()});
-        var container = $this.height() - 1;
-        var content = $("#fittext-tmp-span").html(content).height();
-      } else { // type == "width"
-        $("#fittext-tmp-div").css({"height": $(this).height()});
-        var container = $this.width() - 1;
-        var content = $("#fittext-tmp-span").html(content).width();
-      }
+      var container = $this.height() - 1;
+      var content = $("#fittext-tmp-span").html(content).height();
       
       // If the content fits inside the container, then skip
       // to the next element
       
       if (content <= container) {
         $('#fittext-tmp-div').appendTo('body');
+        $this.addClass('fitTextSkip');
         return;
       }
       
       // Instead of just removing characters one-by-one until the content
       // fits (slow), we estimate a good starting place by taking the %
       // covered in pixel space and shorten the string by that amount.
-      
       var coverage = container / content;
-      var l = content.length;
+      if (coverage < 1) font_size = font_size*coverage;
       
-      var abbrevContent = content; //.substr(0, parseInt(l * coverage, 10));
-      
-      var font_size = 100; // we're using % here!
-      
-      if (type == "height") {
-        while (($('#fittext-tmp-span').height() >= container) & (font_size > 15)) {
-          font_size = font_size*0.98;
-          $('#fittext-tmp-span').css({"font-size": font_size+"%"});
-        }
-      } else { // type == "width"
-        while (($('#fittext-tmp-span').width() >= container) & (font_size > 15)) {
-          font_size = font_size*0.98;
-          $('#fittext-tmp-span').css({"font-size": font_size+"%"});
-        }
+      while (($('#fittext-tmp-span').height() >= container) & (font_size > 15)) {
+        font_size = font_size*0.98;
+        $('#fittext-tmp-span').css({"font-size": font_size+"%"});
       }
       
       // Return our tmp span back to the <body> element; otherwise it'll
       // be destroyed in the line below ...
-      $('#fittext-tmp-div').appendTo('body');
+      $('#fittext-tmp-div').remove();
       
-      $this.css({"font-size": font_size+"%"});
+      $this.css({"font-size": font_size+"%"}).addClass('fitText');
     });
   };
 })(jQuery);
