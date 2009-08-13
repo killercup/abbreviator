@@ -48,8 +48,8 @@
       // to the next element
       
       if (content <= container) {
-        $('#fittext-tmp-div').appendTo('body');
         $this.addClass('fitTextSkip');
+        $('#fittext-tmp-div').appendTo('body').remove();
         return;
       }
       
